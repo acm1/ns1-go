@@ -343,3 +343,41 @@ func TestMakeSecondary(t *testing.T) {
 	assert.Equal(t, z.Secondary.PrimaryIP, "1.1.1.1", "Wrong zone secondary primary IP")
 	assert.Equal(t, z.Secondary.PrimaryPort, 53, "Wrong zone secondary primary port")
 }
+
+func TestMarshalSecondaryZone(t *testing.T) {
+	z := NewZone("secondary.zone")
+	z.MakeSecondary("1.1.1.1")
+	z.Secondary.OtherIPs = []string{"2.2.2.2", "3.3.3.3"}
+	z.Secondary.OtherPorts = []int{53, 53}
+	z.Secondary.TSIG = &TSIG{Enabled: false}
+
+	expected := `
+	{
+	  "zone": "secondary.zone",
+	  "primary": {
+		"enabled": false,
+		"secondaries": []
+	  },
+	  "secondary": {
+		"error": null,
+		"primary_ip": "1.1.1.1",
+		"primary_port": 53,
+		"other_ips": [
+		  "2.2.2.2",
+		  "3.3.3.3"
+		],
+		"other_ports": [
+		  53,
+		  53
+		],
+		"enabled": true,
+		"tsig": {
+		  "enabled": false
+		}
+	  }
+	}`
+
+	j, err := json.Marshal(z)
+	assert.NoError(t, err)
+	assert.JSONEq(t, expected, string(j))
+}
